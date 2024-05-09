@@ -1,0 +1,9 @@
+mutagen
+pycryptodome
+
+# gui
+PyQt6
+pyinstaller
+
+# web
+streamlit
