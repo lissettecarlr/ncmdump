@@ -53,3 +53,6 @@ streamlit run web.py --server.port 1111
 
 效果:
 ![s2](./file/s2.gif)
+
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ncmdump.streamlit.app/)
