@@ -35,9 +35,7 @@ def web_page():
             st.stop()     
 
         with st.spinner('转换中'):
-            print(temp_input_audio)
             temp_output_audio = dump(temp_input_audio)
-            print(temp_output_audio)
             st.audio(temp_output_audio, format='audio/flac', start_time=0)    
 
             with open(temp_output_audio, "rb") as audio_file:
