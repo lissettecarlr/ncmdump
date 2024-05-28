@@ -23,6 +23,13 @@ class DragDropWidget(QWidget):
         self.label.setPixmap(self.original_pixmap)
         self.label.setGeometry(0, 0, 573, 573)  
         self.update_text('将ncm文件拖拽到此处')  # 初始文本内容
+    def create_base_pixmap(self):
+        """创建不包含文本的基础背景图片"""
+        self.base_pixmap = QPixmap(get_resource_path("file/bk.png"))
+        self.label = QLabel(self)
+        self.label.setPixmap(self.base_pixmap)
+        self.label.setGeometry(0, 0, 573, 573)
+        
     def update_text(self, text):
         pixmap = self.original_pixmap.copy()  # 复制原始的 QPixmap 对象
         painter = QPainter(pixmap)
