@@ -13,15 +13,14 @@ class DragDropWidget(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("NCM转换器")
-        self.setGeometry(100, 100, 573, 573)  
+        self.setGeometry(100, 100, 400, 400)  # 调整窗体尺寸
 
         self.setWindowIcon(QIcon(self.get_resource_path("file/favicon-32x32.png")))
         # 加载图片
         self.original_pixmap = QPixmap(self.get_resource_path("file/bk.png"))
 
         self.label = QLabel(self)
-        self.label.setPixmap(self.original_pixmap)
-        self.label.setGeometry(0, 0, 573, 573)  
+        self.label.setGeometry(0, 0, 400, 400)  # 调整标签尺寸
         self.update_text('将ncm文件拖拽到此处')  # 初始文本内容
     def create_base_pixmap(self):
         """创建不包含文本的基础背景图片"""
@@ -31,7 +30,8 @@ class DragDropWidget(QWidget):
         self.label.setGeometry(0, 0, 573, 573)
         
     def update_text(self, text):
-        pixmap = self.original_pixmap.copy()  # 复制原始的 QPixmap 对象
+        resized_pixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        pixmap = resized_pixmap.copy()  # 复制调整大小后的 QPixmap 对象
         painter = QPainter(pixmap)
         painter.setPen(QColor('black'))  # 设置文本颜色
         font = QFont('SimHei', 20)  # 设置字体和大小
