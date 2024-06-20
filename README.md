@@ -41,7 +41,7 @@ pyinstaller --onefile --add-data="file:file" -wF -i file/favicon-32x32.png -n "N
 ```
 
 效果:
-![s1](./file/s1.gif)
+![s3](./file/s1.gif)
 
 
 ### 2.2 WEB

@@ -25,7 +25,7 @@ class DragDropWidget(QWidget):
         self.update_text('将ncm文件拖拽到此处')  # 初始文本内容
     def create_base_pixmap(self):
         """创建不包含文本的基础背景图片"""
-        self.base_pixmap = QPixmap(get_resource_path("file/bk.png"))
+        self.base_pixmap = QPixmap(self.get_resource_path("file/bk.png"))
         self.label = QLabel(self)
         self.label.setPixmap(self.base_pixmap)
         self.label.setGeometry(0, 0, 573, 573)
@@ -59,14 +59,20 @@ class DragDropWidget(QWidget):
             event.acceptProposedAction()
 
     def dropEvent(self, event: QDropEvent):
-        for url in event.mimeData().urls():
-            file_path = url.toLocalFile()
-            if file_path.endswith(".ncm"):
+        file_paths = [url.toLocalFile() for url in event.mimeData().urls() if url.toLocalFile().endswith(".ncm")]
+        if file_paths:
+            for file_path in file_paths:
                 try:
                     dump(file_path)
-                    self.update_text(f"处理完成：{file_path}")
+                    file_name = os.path.basename(file_path)
+                    self.update_text(f"处理完成：{file_name}")
+                    QApplication.processEvents()  
                 except Exception as e:
-                    self.update_text(f"处理文件时出错：{str(e)}")
+                    file_name = os.path.basename(file_path)
+                    self.update_text(f"处理文件时出错：{file_name}: {str(e)}")
+                    QApplication.processEvents()  
+        else:
+            self.update_text("没有找到 .ncm 文件")
                     
 
 if __name__ == "__main__":
