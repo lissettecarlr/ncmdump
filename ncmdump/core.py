@@ -14,7 +14,7 @@ from Crypto.Util.Padding import unpad
 from Crypto.Util.strxor import strxor
 from mutagen import mp3, flac, id3
 
-def dump(input_path, output_path = None, skip = True):
+def dump(input_path, output_path = None, skip = True,identifier_flag=False):
 
     output_path = (lambda path, meta: os.path.splitext(path)[0] + '.' + meta['format']) if not output_path else output_path
     output_path_generator = (lambda path, meta: output_path) if not callable(output_path) else output_path
@@ -57,7 +57,10 @@ def dump(input_path, output_path = None, skip = True):
     if meta_length:
         meta_data = bytearray(f.read(meta_length))
         meta_data = bytes(bytearray([byte ^ 0x63 for byte in meta_data]))
-        identifier = meta_data.decode('utf-8')
+        if identifier_flag == True:
+            identifier = meta_data.decode('utf-8')
+        else:
+            identifier = ""
         meta_data = base64.b64decode(meta_data[22:])
 
         cryptor = AES.new(meta_key, AES.MODE_ECB)
