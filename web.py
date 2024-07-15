@@ -27,7 +27,9 @@ def web_page():
                 f.write(input_file.read())
         else:
             print("文件:{} 已存在，无需创建".format(temp_input_audio))
-
+    else:
+        temp_input_audio = None
+        
     st.markdown("------------")   
     if st.button("开始转换"):
         if temp_input_audio is None:
