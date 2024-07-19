@@ -1,6 +1,6 @@
 # ncm -> flac converter
 
-[English](./README EN.md) | [中文](./README.md)
+[English](./README_EN.md) | [中文](./README.md)
 
 ## 概述
 
