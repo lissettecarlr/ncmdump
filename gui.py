@@ -13,40 +13,69 @@ class DragDropWidget(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("NCM转换器")
-        self.setGeometry(100, 100, 400, 400)  # 调整窗体尺寸
-
+        self.setGeometry(100, 100, 400, 400)
+        self.setMinimumSize(200, 200) 
         self.setWindowIcon(QIcon(self.get_resource_path("file/favicon-32x32.png")))
         # 加载图片
-        self.original_pixmap = QPixmap(self.get_resource_path("file/bk.png"))
-
-        self.label = QLabel(self)
-        self.label.setGeometry(0, 0, 400, 400)  # 调整标签尺寸
-        self.update_text('将ncm文件拖拽到此处')  # 初始文本内容
-    def create_base_pixmap(self):
-        """创建不包含文本的基础背景图片"""
-        self.base_pixmap = QPixmap(self.get_resource_path("file/bk.png"))
-        self.label = QLabel(self)
-        self.label.setPixmap(self.base_pixmap)
-        self.label.setGeometry(0, 0, 573, 573)
+        self.original_pixmap = QPixmap(self.get_resource_path("file/bk_l.png"))
         
+        # 修改标签布局方式
+        layout = QVBoxLayout()
+        self.label = QLabel(self)
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+        
+        self.update_text('将ncm文件拖拽到此处')
+
+    # 添加 resizeEvent 处理函数
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # 当窗口大小改变时，更新文本显示
+        self.update_text(self.label.text())
+
     def update_text(self, text):
         resized_pixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        pixmap = resized_pixmap.copy()  # 复制调整大小后的 QPixmap 对象
+        pixmap = resized_pixmap.copy()
         painter = QPainter(pixmap)
-        painter.setPen(QColor('black'))  # 设置文本颜色
-        font = QFont('SimHei', 20)  # 设置字体和大小
-        painter.setFont(font)
+        painter.setPen(QColor('black'))
 
+        # 计算合适的字体大小
+        font_size = 16
+        max_width = pixmap.width() * 0.9  # 留出10%边距
+        font = QFont('SimHei', font_size)
         font_metrics = QFontMetrics(font)
-        text_width = font_metrics.horizontalAdvance(text)
-        text_height = font_metrics.height()
+        
+        # 如果文本太长，进行截断处理
+        text_lines = []
+        if len(text) > 30:  # 如果文本长度超过30个字符
+            words = text.split('：', 1)  # 在"："处分割
+            if len(words) > 1:
+                text_lines.append(words[0] + '：')
+                remaining_text = words[1]
+                # 每行最多显示20个字符
+                while remaining_text:
+                    if len(remaining_text) > 20:
+                        text_lines.append(remaining_text[:20])
+                        remaining_text = remaining_text[20:]
+                    else:
+                        text_lines.append(remaining_text)
+                        break
+        else:
+            text_lines = [text]
 
-        x = (pixmap.width() - text_width) // 2
-        y = (pixmap.height() - text_height) // 2 + font_metrics.ascent()
+        # 绘制多行文本
+        painter.setFont(font)
+        total_height = len(text_lines) * font_metrics.height()
+        current_y = (pixmap.height() - total_height) // 2 + font_metrics.ascent()
 
-        painter.drawText(x, y, text)  # 在图片中居中绘制文本
+        for line in text_lines:
+            text_width = font_metrics.horizontalAdvance(line)
+            x = (pixmap.width() - text_width) // 2
+            painter.drawText(x, current_y, line)
+            current_y += font_metrics.height()
+
         painter.end()
-        self.label.setPixmap(pixmap)  # 更新 QLabel 中的图片
+        self.label.setPixmap(pixmap)
 
     def get_resource_path(self,relative_path):
         if hasattr(sys, '_MEIPASS'):
