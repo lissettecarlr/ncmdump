@@ -75,7 +75,7 @@ pyinstaller --onefile --add-data="file:file" -wF -i file/favicon-32x32.png -n "N
 需要先安装基础环境和WEB环境
 运行：
 ```bash
-streamlit run web.py --server.port 1111
+streamlit run web.py --server.port 1111 --server.maxUploadSize=500
 ```
 
 
