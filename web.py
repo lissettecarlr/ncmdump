@@ -4,63 +4,72 @@ import os
 
 TEMP = "./temp"
 
+def get_temp_file_paths(input_file):
+    """获取临时文件路径"""
+    base_name = os.path.splitext(os.path.basename(input_file.name))[0]
+    return {
+        'input': os.path.join(TEMP, f"{base_name}.ncm"),
+        'output': os.path.join(TEMP, f"{base_name}.flac"),
+        'output_name': f"{base_name}.flac"
+    }
+
 def web_page():
     st.title("NCM转换器")
     
     input_files = st.file_uploader("上传音频：", type=["ncm"], accept_multiple_files=True)
     
-    if input_files:
-        for input_file in input_files:
-            temp_input_audio = os.path.join(
-                TEMP,
-                os.path.splitext(os.path.basename(input_file.name))[0] + ".ncm"
-            )
-            temp_output_audio_name = os.path.splitext(os.path.basename(input_file.name))[0] + ".flac"
-            temp_output_audio = os.path.join(
-                TEMP,
-                os.path.splitext(os.path.basename(input_file.name))[0] + ".flac"
-            )
-            
-            if os.path.exists(temp_output_audio):
-                os.remove(temp_output_audio)
+    if not input_files:
+        return
 
-            if not os.path.exists(temp_input_audio):
-                with open(temp_input_audio, "wb") as f:
+    # 处理文件上传
+    for input_file in input_files:
+        try:
+            paths = get_temp_file_paths(input_file)
+            
+            # 清理已存在的输出文件
+            if os.path.exists(paths['output']):
+                os.remove(paths['output'])
+
+            # 保存输入文件
+            if not os.path.exists(paths['input']):
+                with open(paths['input'], "wb") as f:
                     f.write(input_file.read())
             else:
-                print("文件:{} 已存在，无需创建".format(temp_input_audio))
+                st.info(f"文件 {input_file.name} 已加载")
         
-        st.markdown("------------")
-        
-        if st.button("开始转换"):
-            for input_file in input_files:
-                temp_input_audio = os.path.join(
-                    TEMP,
-                    os.path.splitext(os.path.basename(input_file.name))[0] + ".ncm"
-                )
-                temp_output_audio_name = os.path.splitext(os.path.basename(input_file.name))[0] + ".flac"
-                temp_output_audio = os.path.join(
-                    TEMP,
-                    os.path.splitext(os.path.basename(input_file.name))[0] + ".flac"
-                )
+        except Exception as e:
+            st.error(f"处理文件 {input_file.name} 时发生错误: {str(e)}")
+            continue
+    
+    st.markdown("------------")
+    
+    if st.button("开始转换"):
+        for input_file in input_files:
+            try:
+                paths = get_temp_file_paths(input_file)
                 
-                if temp_input_audio is None:
-                    st.warning("请先上传音频")
-                    st.stop()
+                if not os.path.exists(paths['input']):
+                    st.warning(f"找不到输入文件: {input_file.name}")
+                    continue
                 
                 with st.spinner(f'正在转换 {input_file.name}'):
-                    temp_output_audio = dump(temp_input_audio)
-                    st.audio(temp_output_audio, format='audio/flac', start_time=0)
+                    output_path = dump(paths['input'])
                     
-                    with open(temp_output_audio, "rb") as audio_file:
-                        audio_data = audio_file.read()
+                    # 显示音频预览
+                    st.audio(output_path, format='audio/flac', start_time=0)
                     
-                    st.download_button(
-                        label=f"点击下载 {temp_output_audio_name}",
-                        data=audio_data,
-                        file_name=temp_output_audio_name,
-                        mime="audio/flac"
-                    )
+                    # 提供下载按钮
+                    with open(output_path, "rb") as audio_file:
+                        st.download_button(
+                            label=f"点击下载 {paths['output_name']}",
+                            data=audio_file.read(),
+                            file_name=paths['output_name'],
+                            mime="audio/flac"
+                        )
+                        
+            except Exception as e:
+                st.error(f"转换文件 {input_file.name} 时发生错误: {str(e)}")
+                continue
 
 if __name__ == "__main__":
     if not os.path.exists(TEMP):

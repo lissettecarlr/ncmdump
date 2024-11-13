@@ -43,6 +43,8 @@ pip install pyinstaller
 WEB环境：
 ```bash
 pip install streamlit
+pip install humanize
+pip install pydub
 ```
 
 如果你毕竟懒，可以直接全安装：
