@@ -11,7 +11,7 @@ Convert .ncm format audio files to flac format, providing both a Windows client 
 Download and run from [releases](https://github.com/lissettecarlr/ncmdump/releases). Currently, only the Windows version is compiled; other platforms can run the code directly.
 
 Interface preview:
-![s3](./file/s3.gif)
+![s1](./file/s3.gif)
 
 ----------------------
 

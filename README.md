@@ -12,7 +12,10 @@
 在[releases](https://github.com/lissettecarlr/ncmdump/releases)中下载后直接运行，目前只编译了windows版本，其他平台可以直接运行代码
 
 界面效果：
-![s3](./file/s3.gif)
+![s1](./file/s1.gif)
+
+* 通过拖拽将文件放入界面
+* 通过双击界面弹出文件选择框进行选取 
 
 ----------------------
 
