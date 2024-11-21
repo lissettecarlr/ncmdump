@@ -37,22 +37,22 @@ class DragDropWidget(QWidget):
         resized_pixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         pixmap = resized_pixmap.copy()
         painter = QPainter(pixmap)
-        painter.setPen(QColor('black'))
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)  # 添加抗锯齿
 
-        # 计算合适的字体大小
-        font_size = 16
-        max_width = pixmap.width() * 0.9  # 留出10%边距
-        font = QFont('SimHei', font_size)
+        # 调整字体设置
+        font_size = 18  # 增大字号
+        font = QFont('Microsoft YaHei', font_size)  # 使用微软雅黑字体
+        font.setBold(True)  # 设置为粗体
+        painter.setFont(font)
         font_metrics = QFontMetrics(font)
-        
-        # 如果文本太长，进行截断处理
+
+        # 文本分行处理保持不变
         text_lines = []
-        if len(text) > 30:  # 如果文本长度超过30个字符
-            words = text.split('：', 1)  # 在"："处分割
+        if len(text) > 30:
+            words = text.split('：', 1)
             if len(words) > 1:
                 text_lines.append(words[0] + '：')
                 remaining_text = words[1]
-                # 每行最多显示20个字符
                 while remaining_text:
                     if len(remaining_text) > 20:
                         text_lines.append(remaining_text[:20])
@@ -63,15 +63,24 @@ class DragDropWidget(QWidget):
         else:
             text_lines = [text]
 
-        # 绘制多行文本
-        painter.setFont(font)
+        # 计算文本位置
         total_height = len(text_lines) * font_metrics.height()
         current_y = (pixmap.height() - total_height) // 2 + font_metrics.ascent()
 
+        # 绘制文本阴影和主文本
         for line in text_lines:
             text_width = font_metrics.horizontalAdvance(line)
             x = (pixmap.width() - text_width) // 2
+            
+            # 绘制阴影
+            painter.setPen(QColor(0, 0, 0, 160))  # 半透明黑色阴影
+            shadow_offset = 2  # 阴影偏移量
+            painter.drawText(x + shadow_offset, current_y + shadow_offset, line)
+            
+            # 绘制主文本
+            painter.setPen(QColor('white'))  # 使用白色作为主文本颜色
             painter.drawText(x, current_y, line)
+            
             current_y += font_metrics.height()
 
         painter.end()
@@ -107,16 +116,23 @@ class DragDropWidget(QWidget):
     def process_files(self, file_paths):
         ncm_files = [f for f in file_paths if f.endswith('.ncm')]
         if ncm_files:
+            success_count = 0  # 添加成功计数器
+            total_files = len(ncm_files)  # 总文件数
+            
             for file_path in ncm_files:
                 try:
                     dump(file_path)
+                    success_count += 1  # 成功转换后计数加1
                     file_name = os.path.basename(file_path)
-                    self.update_text(f"处理完成：{file_name}")
+                    self.update_text(f"处理完成：{file_name}\n已转换：{success_count}/{total_files}")
                     QApplication.processEvents()
                 except Exception as e:
                     file_name = os.path.basename(file_path)
-                    self.update_text(f"处理文件时出错：{file_name}: {str(e)}")
+                    self.update_text(f"处理文件时出错：{file_name}: {str(e)}\n已转换：{success_count}/{total_files}")
                     QApplication.processEvents()
+            
+            # 所有文件处理完成后显示最终结果
+            self.update_text(f"转换完成！\n共转换 {success_count}/{total_files} 个文件")
         else:
             self.update_text("没有找到 .ncm 文件")
     
