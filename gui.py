@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QFileDialog
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QDropEvent,QPixmap, QPainter, QFont, QColor,QFontMetrics,QIcon,QDragEnterEvent
 import os
@@ -87,22 +87,43 @@ class DragDropWidget(QWidget):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
 
-    def dropEvent(self, event: QDropEvent):
-        file_paths = [url.toLocalFile() for url in event.mimeData().urls() if url.toLocalFile().endswith(".ncm")]
-        if file_paths:
-            for file_path in file_paths:
+    # 添加鼠标点击事件处理
+    def mouseDoubleClickEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.select_files()
+    
+    # 添加文件选择方法
+    def select_files(self):
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "选择NCM文件",
+            "",
+            "NCM Files (*.ncm)"
+        )
+        if files:
+            self.process_files(files)
+    
+    # 抽取共同的文件处理逻辑
+    def process_files(self, file_paths):
+        ncm_files = [f for f in file_paths if f.endswith('.ncm')]
+        if ncm_files:
+            for file_path in ncm_files:
                 try:
                     dump(file_path)
                     file_name = os.path.basename(file_path)
                     self.update_text(f"处理完成：{file_name}")
-                    QApplication.processEvents()  
+                    QApplication.processEvents()
                 except Exception as e:
                     file_name = os.path.basename(file_path)
                     self.update_text(f"处理文件时出错：{file_name}: {str(e)}")
-                    QApplication.processEvents()  
+                    QApplication.processEvents()
         else:
             self.update_text("没有找到 .ncm 文件")
-                    
+    
+    # 修改 dropEvent 方法，使用新的处理逻辑
+    def dropEvent(self, event: QDropEvent):
+        file_paths = [url.toLocalFile() for url in event.mimeData().urls()]
+        self.process_files(file_paths)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

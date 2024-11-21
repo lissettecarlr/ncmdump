@@ -45,7 +45,7 @@ WEB环境：
 pip install streamlit
 ```
 
-如果你毕竟懒，可以直接全安装：
+如果你比较懒，可以直接全安装：
 ```bash
 pip install -r requirements.txt
 ```
