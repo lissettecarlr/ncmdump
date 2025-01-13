@@ -29,6 +29,9 @@ def cleanup_temp_files():
                 pass
 
 def web_page():
+
+    #打开web页面时直接清理过时文件
+    cleanup_temp_files()
     st.title("NCM转换器")
     
     input_files = st.file_uploader("上传音频：", type=["ncm"], accept_multiple_files=True)
