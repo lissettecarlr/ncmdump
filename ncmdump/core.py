@@ -111,7 +111,7 @@ def dump(input_path, output_path = None, skip = True):
 
             # media data
             output_path = output_path_generator(input_path, meta_data)
-            if skip and os.path.exists(output_path): return
+            if skip and os.path.exists(output_path): return output_path
 
             # 写入解密后的音频数据
             with open(output_path, 'wb') as m:
