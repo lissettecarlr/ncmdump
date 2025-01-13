@@ -32,6 +32,8 @@ def web_page():
 
     #打开web页面时直接清理过时文件
     cleanup_temp_files()
+    st.success("已清理过时文件")
+    
     st.title("NCM转换器")
     
     input_files = st.file_uploader("上传音频：", type=["ncm"], accept_multiple_files=True)
