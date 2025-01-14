@@ -3,18 +3,15 @@ from ncmdump import dump
 import os
 import shutil
 from datetime import datetime, timedelta
+import traceback
 
 TEMP = "./temp"
 MAX_TEMP_AGE = timedelta(hours=24)  # 临时文件最大保存时间
 
-def get_temp_file_paths(input_file):
+def get_temp_file_path(input_file):
     """获取临时文件路径"""
     base_name = os.path.splitext(os.path.basename(input_file.name))[0]
-    return {
-        'input': os.path.join(TEMP, f"{base_name}.ncm"),
-        'output': os.path.join(TEMP, f"{base_name}.flac"),
-        'output_name': f"{base_name}.flac"
-    }
+    return os.path.join(TEMP, f"{base_name}.ncm")
 
 def cleanup_temp_files():
     """清理超过24小时的临时文件"""
@@ -32,6 +29,11 @@ def cleanup_temp_files():
                 pass
 
 def web_page():
+
+    #打开web页面时直接清理过时文件
+    cleanup_temp_files()
+    st.success("已清理过时文件")
+    
     st.title("NCM转换器")
     
     input_files = st.file_uploader("上传音频：", type=["ncm"], accept_multiple_files=True)
@@ -42,15 +44,11 @@ def web_page():
     # 处理文件上传
     for input_file in input_files:
         try:
-            paths = get_temp_file_paths(input_file)
-            
-            # 清理已存在的输出文件
-            if os.path.exists(paths['output']):
-                os.remove(paths['output'])
+            input_path = get_temp_file_path(input_file)
 
             # 保存输入文件
-            if not os.path.exists(paths['input']):
-                with open(paths['input'], "wb") as f:
+            if not os.path.exists(input_path):
+                with open(input_path, "wb") as f:
                     f.write(input_file.read())
             else:
                 st.info(f"文件 {input_file.name} 已加载")
@@ -67,38 +65,43 @@ def web_page():
         
         for idx, input_file in enumerate(input_files):
             try:
-                paths = get_temp_file_paths(input_file)
+                input_path = get_temp_file_path(input_file)
                 
-                if not os.path.exists(paths['input']):
+                if not os.path.exists(input_path):
                     st.warning(f"找不到输入文件: {input_file.name}")
                     continue
                 
                 with st.spinner(f'正在转换 {input_file.name} ({idx + 1}/{total_files})'):
                     try:
-                        output_path = dump(paths['input'])
+                        output_path = dump(input_path)
+                        #得到输出文件名及文件扩展名
+                        file_name = os.path.basename(output_path)
+                        extension = os.path.splitext(output_path)[1][1:]
+
                     except Exception as e:
                         st.error(f"转换失败: {str(e)}")
                         continue
                     
                     if os.path.exists(output_path):
                         # 显示音频预览
-                        st.audio(output_path, format='audio/flac', start_time=0)
+                        st.audio(output_path, format=f'audio/{extension}', start_time=0)
                         
                         # 提供下载按钮
                         with open(output_path, "rb") as audio_file:
                             st.download_button(
-                                label=f"点击下载 {paths['output_name']}",
-                                data=audio_file.read(),
-                                file_name=paths['output_name'],
-                                mime="audio/flac"
+                                label = f"点击下载 {file_name}",
+                                data = audio_file.read(),
+                                file_name = file_name,
+                                mime = f"audio/{extension}"
                             )
                     else:
-                        st.error(f"转换后的文件未生成: {paths['output_name']}")
+                        st.error(f"转换后的文件未生成: {file_name}")
                 
                 progress_bar.progress((idx + 1) / total_files)
                 
             except Exception as e:
                 st.error(f"处理文件 {input_file.name} 时发生错误: {str(e)}")
+                traceback.print_exc()
                 continue
 
 if __name__ == "__main__":
