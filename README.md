@@ -74,9 +74,8 @@ or
 
 编译成可执行文件：
 ```bash
-pyinstaller --onefile --add-data="file:file" -wF -i file/favicon-32x32.png -n "NCM转换器" .\gui.py
+pyinstaller --onefile --add-data="file:file" -wF -i file/favicon-32x32.png -n "NCM_Tool" .\gui.py
 ```
-
 
 ### WEB
 需要先安装基础环境和WEB环境
