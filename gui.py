@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QFileDialog
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QDropEvent,QPixmap, QPainter, QFont, QColor,QFontMetrics,QIcon,QDragEnterEvent
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect
+from PyQt6.QtGui import QDropEvent, QPixmap, QPainter, QFont, QColor, QFontMetrics, QIcon, QDragEnterEvent, QDragLeaveEvent, QDragMoveEvent
 import os
 from ncmdump import dump
 
@@ -9,6 +9,7 @@ class DragDropWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
+        self.is_dragging = False  # 添加拖拽状态标记
         self.init_ui()
 
     def init_ui(self):
@@ -18,12 +19,18 @@ class DragDropWidget(QWidget):
         self.setWindowIcon(QIcon(self.get_resource_path("file/favicon-32x32.png")))
         # 加载图片
         self.original_pixmap = QPixmap(self.get_resource_path("file/bk_l.png"))
+        # 添加拖拽时的背景图片
+        self.drag_pixmap = self.original_pixmap.copy()  # 创建拖拽状态下的背景图像副本
         
         # 修改标签布局方式
         layout = QVBoxLayout()
+        layout.setContentsMargins(10, 10, 10, 10)  # 设置边距，为高亮边框留出空间
         self.label = QLabel(self)
         layout.addWidget(self.label)
         self.setLayout(layout)
+        
+        # 创建用于动画效果的缩放因子
+        self.scale_factor = 1.0
         
         self.update_text('将ncm文件拖拽到此处')
 
@@ -34,10 +41,50 @@ class DragDropWidget(QWidget):
         self.update_text(self.label.text())
 
     def update_text(self, text):
-        resized_pixmap = self.original_pixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        pixmap = resized_pixmap.copy()
+        # 根据当前是否处于拖拽状态选择背景图片
+        base_pixmap = self.drag_pixmap if self.is_dragging else self.original_pixmap
+        
+        # 创建适合标签大小的背景
+        label_size = self.label.size()
+        # 应用缩放因子，只在视觉上缩放而不改变实际尺寸
+        scaled_size = label_size * self.scale_factor
+        
+        resized_pixmap = base_pixmap.scaled(
+            scaled_size.width(), 
+            scaled_size.height(), 
+            Qt.AspectRatioMode.KeepAspectRatio, 
+            Qt.TransformationMode.SmoothTransformation
+        )
+        
+        # 创建一个与标签大小相同的空白画布
+        pixmap = QPixmap(label_size)
+        pixmap.fill(Qt.GlobalColor.transparent)  # 填充透明背景
+        
+        # 将缩放后的图像绘制到中心位置
         painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)  # 添加抗锯齿
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # 计算居中位置
+        x_offset = (label_size.width() - resized_pixmap.width()) // 2
+        y_offset = (label_size.height() - resized_pixmap.height()) // 2
+        painter.drawPixmap(x_offset, y_offset, resized_pixmap)
+        
+        # 如果正在拖拽，绘制半透明叠加层和高亮边框
+        if self.is_dragging:
+            # 绘制半透明蓝色叠加层
+            overlay_color = QColor(0, 120, 215, 70)  # 半透明蓝色
+            painter.fillRect(pixmap.rect(), overlay_color)
+            
+            # 绘制高亮边框
+            border_color = QColor(0, 120, 215, 200)  # 蓝色边框
+            pen_width = 4
+            painter.setPen(QColor(border_color))
+            painter.drawRect(pen_width//2, pen_width//2, 
+                           pixmap.width()-pen_width, pixmap.height()-pen_width)
+            
+            # 如果是拖拽状态，修改提示文本
+            if text == '将ncm文件拖拽到此处':
+                text = '释放鼠标以转换文件'
 
         # 调整字体设置
         font_size = 18  # 增大字号
@@ -94,7 +141,30 @@ class DragDropWidget(QWidget):
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
-            event.acceptProposedAction()
+            # 检查是否有NCM文件
+            has_ncm = False
+            for url in event.mimeData().urls():
+                if url.toLocalFile().endswith('.ncm'):
+                    has_ncm = True
+                    break
+            
+            if has_ncm:
+                self.is_dragging = True
+                # 应用缩放效果，使画面看起来轻微缩小
+                self.scale_factor = 0.97
+                self.update_text('将ncm文件拖拽到此处')
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            event.ignore()
+
+    def dragLeaveEvent(self, event: QDragLeaveEvent):
+        self.is_dragging = False
+        # 恢复原始大小
+        self.scale_factor = 1.0
+        self.update_text('将ncm文件拖拽到此处')
+        event.accept()
 
     # 添加鼠标点击事件处理
     def mouseDoubleClickEvent(self, event):
@@ -138,8 +208,21 @@ class DragDropWidget(QWidget):
     
     # 修改 dropEvent 方法，使用新的处理逻辑
     def dropEvent(self, event: QDropEvent):
+        self.is_dragging = False
+        # 恢复原始大小
+        self.scale_factor = 1.0
+        self.update_text('处理中...')
         file_paths = [url.toLocalFile() for url in event.mimeData().urls()]
         self.process_files(file_paths)
+
+    def dragMoveEvent(self, event: QDragMoveEvent):
+        # 保持拖拽状态
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                if url.toLocalFile().endswith('.ncm'):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
