@@ -1,32 +1,42 @@
-# NCM格式转换工具
+# 🎵 NCM格式转换工具
 
-[English](./README_EN.md) | [中文](./README.md)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Web%20App-orange)](https://ncmdump.streamlit.app/)
 
-## 概述
+<div align="center">
+  <a href="./README_EN.md">English</a> •
+  <a href="./README.md">中文</a>
+</div>
 
-这是一个将网易云音乐的.ncm格式音频文件转换为flac格式的工具，提供Windows客户端和Web两种使用方式。
+## 📋 概述
+
+这是一个将抑云音乐的.ncm格式音频文件转换为flac格式的工具，提供Windows客户端和Web两种使用方式。
 
 ## 使用方法
 
-### 客户端使用
+### 🖥️ 客户端使用
 
 在[releases](https://github.com/lissettecarlr/ncmdump/releases)页面下载最新版本后直接运行，目前只编译了Windows版本，其他平台可以直接运行源代码。
 
 操作演示：
-![客户端演示](./file/s1.gif)
-
-支持两种导入方式：
 * 拖拽文件到界面中
 * 双击界面打开文件选择对话框
 
-### Web使用
+![客户端演示](./file/s1.gif)
 
-访问Streamlit部署版本：[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ncmdump.streamlit.app/)
+### 🌐 Web使用
+
+部署在了Streamlit上，点击右侧图标跳转： [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ncmdump.streamlit.app/)
 
 操作演示：
+* 当音频文件比较大的时候，上传还是需要一定时间，毕竟是白嫖Streamlit。下列演示是因为本地跑的，所以秒传。
+
 ![Web演示](./file/s2.gif)
 
-## 环境配置
+---------
+
+## ⚙️ 环境配置
 
 如果需要从源代码运行，需要安装以下依赖：
 
@@ -63,7 +73,7 @@ docker run -d -p 23231:23231 ncmdump
 pip install -r requirements.txt
 ```
 
-## 运行方法
+## 🚀 运行方法
 
 ### GUI程序
 
