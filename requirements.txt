@@ -1,9 +1,4 @@
+# 基础 + web（Streamlit 部署时只会安装这里，避免装入 PyQt6/pyinstaller 等大体积依赖）
 mutagen
 pycryptodome
-
-# gui
-PyQt6
-pyinstaller
-
-# web
 streamlit

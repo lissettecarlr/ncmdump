@@ -19,4 +19,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 23231
 
 # 启动 Streamlit 服务
-CMD ["streamlit", "run", "web.py", "--server.port", "23231", "--server.maxUploadSize=500", "--server.address", "0.0.0.0"] 
+CMD ["streamlit", "run", "web.py", "--server.port", "23231", "--server.maxUploadSize=100", "--server.address", "0.0.0.0"] 

@@ -1,0 +1,14 @@
+[server]
+maxUploadSize = 100
+# 关闭文件监听，减少常驻CPU/内存开销
+fileWatcherType = "none"
+runOnSave = false
+
+[runner]
+fastReruns = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

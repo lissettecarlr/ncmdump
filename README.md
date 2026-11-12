@@ -70,8 +70,10 @@ docker run -d -p 23231:23231 ncmdump
 如果想一次安装所有依赖：
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-gui.txt
 ```
+
+仅部署 Web 时使用 `requirements.txt` 即可（不含 GUI 依赖）。
 
 ## 🚀 运行方法
 
@@ -95,12 +97,12 @@ pyinstaller --onefile --add-data="file:file" -wF -i file/favicon-32x32.png -n "N
 
 运行：
 ```bash
-streamlit run web.py --server.port 1111 --server.maxUploadSize=500
+streamlit run web.py --server.port 1111 --server.maxUploadSize=100
 ```
 
 参数说明：
 - `--server.port 1111`：设置服务端口为1111
-- `--server.maxUploadSize=500`：设置最大上传文件大小为500MB
+- `--server.maxUploadSize=500`：设置最大上传文件大小为100MB
 
 
 

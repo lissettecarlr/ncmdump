@@ -19,7 +19,7 @@ import mutagen
 
 CORE_KEY = binascii.a2b_hex('687A4852416D736F356B496E62617857')
 META_KEY = binascii.a2b_hex('2331346C6A6B5F215C5D2630553C2728')
-BUFFER_SIZE = 16384
+BUFFER_SIZE = 1024 * 1024  # 1MB，必须是256的整数倍（RC4密钥流周期为256字节）
 NCM_MAGIC = binascii.a2b_hex('4354454e4644414d')
 IDENTIFIER_FLAG = False  #是否提取音频的备注内容
 
@@ -70,7 +70,8 @@ def generate_rc4_keystream(key_data):
 
         # 生成密钥流
         stream = [S[(S[i] + S[(i + S[i]) & 0xFF]) & 0xFF] for i in range(256)]
-        return bytes(stream[1:] + stream[:1]) * 64
+        # 密钥流周期为256字节，重复到与读取缓冲区等长，减少Python层循环次数
+        return bytes(stream[1:] + stream[:1]) * (BUFFER_SIZE // 256)
     except Exception as e:
         raise NCMDecryptError(f"RC4密钥流生成失败: {str(e)}")
 
@@ -185,7 +186,9 @@ def dump(input_path, output_path = None, skip = True):
                             data = f.read(BUFFER_SIZE)  # 使用定义的常量
                             if not data:
                                 break
-                            data = strxor(data, key_stream[:len(data)])  # 使用密钥流解密
+                            # 使用密钥流解密（整块时避免切片拷贝）
+                            ks = key_stream if len(data) == len(key_stream) else key_stream[:len(data)]
+                            data = strxor(data, ks)
                             m.write(data)
                 except IOError as e:
                     raise NCMFileIOError(f"写入解密数据失败: {str(e)}")
